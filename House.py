@@ -4,7 +4,7 @@ import numpy as np
 import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
-
+from sklearn import metrics
 
 df_train = pd.read_csv('train.csv')
 df_trainlog = pd.read_csv('train.csv')
@@ -80,7 +80,19 @@ missing_values_whole = missing_values_whole[missing_values_whole  > 0]
 whole_data_dummy = pd.get_dummies(whole_data)
 print(whole_data_dummy.shape)
 #modeling
-X_train, X_test, y_train, y_test = train_test_split(whole_data_dummy[:df_train.shape[0]], df_train['SalePrice'], test_size=0.3, random_state=42)
+
+X_train, X_test, y_train, y_test = train_test_split(whole_data_dummy[:df_train.shape[0]], df_train['SalePrice'], test_size=0.3, random_state=442)
+#Linear Regression
 model = LinearRegression()
-model.fit(X_train, y_train)
-print(model.score(X_test, y_test))
+fit = model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))  
+print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))  
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))   
+print('R2 Score:', metrics.r2_score(y_test, y_pred))
+print(X_test.shape, y_test.shape, y_pred.shape)
+
+selected_feature_index = 1  # Choose index of feature you want to visualize
+plt.scatter(X_test.iloc[:, selected_feature_index], y_test,  color='gray')
+plt.plot(X_test.iloc[:, selected_feature_index], y_pred, color='red', linewidth=2)
+plt.show()
