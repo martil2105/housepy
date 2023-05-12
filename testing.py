@@ -11,8 +11,6 @@ df_train = pd.read_csv('train.csv')
 df_trainlog = pd.read_csv('train.csv')
 df_test = pd.read_csv('test.csv')
 df_train["SalePrice"] = np.log(df_train['SalePrice'])
-print(df_train.columns)
-print(df_train['SalePrice'].describe())
 
 #missing data
 whole_data = pd.concat((df_train, df_test)).reset_index(drop=True)
@@ -36,11 +34,11 @@ for i in var_catmod:
 whole_data["MSZonig"] = whole_data["MSZoning"].fillna(whole_data["MSZoning"].mode()[0])
 missing_values_whole = whole_data.isnull().sum().sort_values(ascending=False)
 missing_values_whole = missing_values_whole[missing_values_whole  > 0]
-print(missing_values_whole)
+
 whole_data = whole_data.drop(['GarageYrBlt', 'PoolQC', 'Utilities'], axis=1)
 #transforming some numerical variables that are really categorical
 whole_data_dummy = pd.get_dummies(whole_data)
-print(whole_data_dummy.shape)
+
 
 #skewed features
 numeric_cols = whole_data_dummy.select_dtypes(include=[np.number]).columns
@@ -54,7 +52,6 @@ for col in numeric_cols:
 #modeling
 
 X_train, X_test, y_train, y_test = train_test_split(whole_data_dummy[:df_train.shape[0]], df_train['SalePrice'], test_size=0.3, random_state=22)
-print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 #Linear Regression
 model = LinearRegression()
 fit = model.fit(X_train, y_train)
@@ -64,10 +61,6 @@ print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
 print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))   
 print('R2 Score:', metrics.r2_score(y_test, y_pred))
 
-#residual plot
-plt.scatter(y_pred, y_test - y_pred, c = "blue", label = "Training data")
-#plt.show()
-
 #Cross Validation
 from sklearn.model_selection import cross_val_score
 
@@ -76,38 +69,6 @@ rmse_scores = np.sqrt(-scores)
 print('Mean RMSE:', rmse_scores.mean())
 print('Standard deviation of RMSE:', rmse_scores.std())
 print('RMSE:', rmse_scores)
-
-#Ridge Regression
-from sklearn.linear_model import Ridge, RidgeCV
-
-alphas = np.logspace(-4, 5.5, 20)
-model = RidgeCV(alphas=alphas, cv= 5)
-model.fit(X_train, y_train)
-print('Optimal Alpha:', model.alpha_)
-
-model = Ridge(alpha=3.2)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-ypre = model.predict(X_train)
-print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
-print('R2 Score:', metrics.r2_score(y_test, y_pred))
-
-#Lasso Regression
-from sklearn.linear_model import Lasso, LassoCV
-alphas = np.logspace(-4, 5.5, 60)
-model = LassoCV(alphas = alphas, cv=5)
-model.fit(X_train, y_train)
-print('Best alpha:', model.alpha_)
-
-model = Lasso(alpha = 0.0004)
-model.fit(X_train, y_train)
-y_pred = model.predict(X_test)
-print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred))
-print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred))
-print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred)))
-print('R2 Score:', metrics.r2_score(y_test, y_pred))
 
 #Elasctic Net
 from sklearn.linear_model import ElasticNetCV, ElasticNet
