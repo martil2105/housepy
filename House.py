@@ -9,6 +9,7 @@ from scipy.stats import norm
 import time 
 
 df_train = pd.read_csv('train.csv')
+df_trainlog = pd.read_csv('train.csv')
 df_test = pd.read_csv('test.csv')
 df_train["SalePrice"] = np.log(df_train['SalePrice'])
 print(df_train.columns)
@@ -50,33 +51,11 @@ for col in numeric_cols:
     skewness = whole_data_dummy[col].skew()
     if skewness > threshold:
         whole_data_dummy[col] = np.log1p(whole_data_dummy[col])  # using log1p instead of log to handle zero values
-X_train, X_test, y_train, y_test = train_test_split(whole_data_dummy[:df_train.shape[0]], df_train['SalePrice'], test_size=0.3, random_state=22)
-print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-#backward and forward selection
-start_time = time.time()
-from mlxtend.feature_selection import SequentialFeatureSelector as SFS
-
-forward_feature_selector = SFS(LinearRegression(), k_features="best", forward=True, scoring='r2', cv=2)
-forward_feature_selector = forward_feature_selector.fit(X_train, y_train)
-fwd_selected_features = X_train.columns[list(forward_feature_selector.k_feature_idx_)]
-print(fwd_selected_features)
-
-X_train_fwd, X_test_fwd, y_train, y_test = train_test_split(X_train[fwd_selected_features], y_train, test_size = 0.2, random_state = 0)
-regressor = LinearRegression()
-regressor.fit(X_train_fwd, y_train)
-y_pred_fwd = regressor.predict(X_test_fwd)
-
-print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred_fwd))
-print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred_fwd))
-print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred_fwd)))
-print('R2 Score:', metrics.r2_score(y_test, y_pred_fwd))
-print("coefficients:", regressor.coef_) 
-end_time = time.time()
-print("Time taken:", end_time - start_time)
 #modeling
 
-
+X_train, X_test, y_train, y_test = train_test_split(whole_data_dummy[:df_train.shape[0]], df_train['SalePrice'], test_size=0.3, random_state=22)
+print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 #Linear Regression
 lm_model = LinearRegression()
 fit = lm_model.fit(X_train, y_train)
@@ -94,6 +73,21 @@ rmse_scores = np.sqrt(-scores)
 #print('Mean RMSE:', rmse_scores.mean())
 #print('Standard deviation of RMSE:', rmse_scores.std())
 #print('RMSE:', rmse_scores)
+
+#residual plot
+plt.scatter(y_pred, y_test - y_pred, c = "blue", label = "Training data")
+#plt.show()
+#plot linear regression predicted value
+plt.scatter(y_pred, y_test, c = "blue", label = "Training data")
+
+#Cross Validation
+from sklearn.model_selection import cross_val_score
+
+scores = cross_val_score(lm_model, X_train, y_train, cv=5, scoring='neg_mean_squared_error')
+rmse_scores = np.sqrt(-scores)
+print('Mean RMSE:', rmse_scores.mean())
+print('Standard deviation of RMSE:', rmse_scores.std())
+print('RMSE:', rmse_scores)
 
 #Ridge Regression
 from sklearn.linear_model import Ridge, RidgeCV
@@ -156,3 +150,25 @@ print('Linear Regression CV scores:', lm_scores.mean())
 print('Ridge Regression CV scores:', ridge_scores.mean())
 print('Lasso Regression CV scores:', lasso_scores.mean())
 print('Elastic Net CV scores:', en_model_scores.mean())
+
+#backward and forward selection
+start_time = time.time()
+from mlxtend.feature_selection import SequentialFeatureSelector as SFS
+
+forward_feature_selector = SFS(LinearRegression(), k_features="best", forward=True, scoring='r2', cv=2)
+forward_feature_selector = forward_feature_selector.fit(X_train, y_train)
+fwd_selected_features = X_train.columns[list(forward_feature_selector.k_feature_idx_)]
+print(fwd_selected_features)
+
+X_train_fwd, X_test_fwd, y_train, y_test = train_test_split(X_train[fwd_selected_features], y_train, test_size = 0.2, random_state = 0)
+regressor = LinearRegression()
+regressor.fit(X_train_fwd, y_train)
+y_pred_fwd = regressor.predict(X_test_fwd)
+
+print('Mean Absolute Error:', metrics.mean_absolute_error(y_test, y_pred_fwd))
+print('Mean Squared Error:', metrics.mean_squared_error(y_test, y_pred_fwd))
+print('Root Mean Squared Error:', np.sqrt(metrics.mean_squared_error(y_test, y_pred_fwd)))
+print('R2 Score:', metrics.r2_score(y_test, y_pred_fwd))
+print("coefficients:", regressor.coef_) 
+end_time = time.time()
+print("Time taken:", end_time - start_time)
