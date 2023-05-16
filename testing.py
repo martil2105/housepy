@@ -6,8 +6,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn import metrics
 from scipy.stats import norm    
-
-from mlxtend.feature_selection import SequentialFeatureSelector as SFSy
 import time
 df_train = pd.read_csv('train.csv')
 df_trainlog = pd.read_csv('train.csv')
@@ -54,7 +52,6 @@ for col in numeric_cols:
 #modeling
 
 X_train, X_test, y_train, y_test = train_test_split(whole_data_dummy[:df_train.shape[0]], df_train['SalePrice'], test_size=0.3, random_state=22)
-print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 #Linear Regression
 lm_model = LinearRegression()
 fit = lm_model.fit(X_train, y_train)
@@ -134,5 +131,3 @@ print('Linear Regression CV scores:', lm_scores.mean())
 print('Ridge Regression CV scores:', ridge_scores.mean())
 print('Lasso Regression CV scores:', lasso_scores.mean())
 print('Elastic Net CV scores:', en_model_scores.mean())
-
-print(X_test.shape, y_test.shape, X_train.shape, y_train.shape)
